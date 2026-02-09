@@ -5,8 +5,9 @@ Nhiệm vụ: Load YOLO model và detect vehicles trong frame
 
 from ultralytics import YOLO
 import numpy as np
+import cv2
 import config
-
+import torch
 
 class VehicleDetector:
     """
@@ -14,72 +15,78 @@ class VehicleDetector:
     """
     
     def __init__(self):
-        """
-        TODO: Bạn cần implement
-        
-        Tasks:
-        1. Load YOLO model từ config.YOLO_MODEL
-        2. Set device (cuda nếu có GPU, cpu nếu không)
-        3. Warm up model (chạy 1 lần dummy inference)
-        
-        Hints:
-        - self.model = YOLO(config.YOLO_MODEL)
-        - Check GPU: torch.cuda.is_available()
-        """
-        pass
+        """Load YOLO model và warm up"""
+        self.model = YOLO(config.YOLO_MODEL)
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.model.to(self.device)
+        dummy_frame = np.zeros((640, 480, 3), dtype=np.uint8)
+        _ = self.model(dummy_frame)
+        print(f"YOLO model loaded on {self.device}")
     
     def detect(self, frame):
-        """
-        Detect vehicles trong frame
+        """Detect vehicles và filter theo class, confidence, bbox area"""
+        detections = []
         
-        Args:
-            frame: numpy array (BGR image từ OpenCV)
+        # Chạy YOLO inference
+        results = self.model(frame, verbose=False)
         
-        Returns:
-            detections: list of dict, mỗi dict có:
-                {
-                    'bbox': [x1, y1, x2, y2],
-                    'confidence': float,
-                    'class_id': int,
-                    'class_name': str
+        result = results[0]
+        
+        # Loop qua detections và apply filters
+        if result.boxes is not None and len(result.boxes) > 0:
+            boxes = result.boxes.xyxy.cpu().numpy()
+            confidences = result.boxes.conf.cpu().numpy()
+            class_ids = result.boxes.cls.cpu().numpy()
+            
+            for i in range(len(boxes)):
+                class_id = int(class_ids[i])
+                confidence = float(confidences[i])
+                x1, y1, x2, y2 = boxes[i]
+                
+                # Filter: class, confidence, area
+                if class_id not in config.TARGET_CLASSES:
+                    continue
+                
+                if confidence < config.CONFIDENCE_THRESHOLD:
+                    continue
+                width = x2 - x1
+                height = y2 - y1
+                area = width * height
+                
+                if area < config.MIN_BOX_AREA:
+                    continue
+                
+                class_name = result.names[class_id]
+                detection = {
+                    'bbox': [int(x1), int(y1), int(x2), int(y2)],
+                    'confidence': confidence,
+                    'class_id': class_id,
+                    'class_name': class_name
                 }
+                
+                detections.append(detection)
         
-        TODO: Bạn cần implement
-        
-        Tasks:
-        1. Chạy YOLO inference: results = self.model(frame)
-        2. Filter theo TARGET_CLASSES và CONFIDENCE_THRESHOLD
-        3. Filter theo MIN_BOX_AREA (bỏ bbox quá nhỏ)
-        4. Convert results về format dict như trên
-        
-        Hints:
-        - results[0].boxes.xyxy: bbox coordinates
-        - results[0].boxes.conf: confidence scores
-        - results[0].boxes.cls: class IDs
-        - Tính area: (x2-x1) * (y2-y1)
-        """
-        pass
+        return detections
     
     def filter_by_roi(self, detections, roi_polygon):
-        """
-        Lọc detections nằm trong ROI
+        """Lọc detections nằm trong ROI polygon"""
+        if roi_polygon is None:
+            return detections
         
-        Args:
-            detections: list of dict từ detect()
-            roi_polygon: numpy array shape (N, 2) - polygon points
+        if not isinstance(roi_polygon, np.ndarray):
+            roi_polygon = np.array(roi_polygon, dtype=np.int32)
         
-        Returns:
-            filtered_detections: list of dict (chỉ giữ trong ROI)
+        filtered_detections = []
         
-        TODO: Bạn cần implement
+        for det in detections:
+            x1, y1, x2, y2 = det['bbox']
+            centroid_x = (x1 + x2) / 2
+            centroid_y = (y1 + y2) / 2
+            centroid = (centroid_x, centroid_y)
+            
+            # Check centroid trong polygon
+            result = cv2.pointPolygonTest(roi_polygon, centroid, False)
+            if result >= 0:
+                filtered_detections.append(det)
         
-        Tasks:
-        1. Tính centroid của mỗi bbox: center = ((x1+x2)/2, (y1+y2)/2)
-        2. Check centroid có trong polygon không
-        3. Chỉ giữ detections có centroid trong ROI
-        
-        Hints:
-        - Dùng cv2.pointPolygonTest(roi_polygon, center, False)
-        - Return >= 0 là trong polygon
-        """
-        pass
+        return filtered_detections
