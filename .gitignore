@@ -1,0 +1,19 @@
+﻿# ===== Data files =====
+data/*.mp4
+data/*.avi
+data/*.mkv
+data/*.db
+data/*.csv
+
+# ===== YOLO =====
+models/
+runs/
+
+# ===== Python =====
+__pycache__/
+*.pyc
+.env
+
+# ===== OS =====
+Thumbs.db
+.DS_Store
