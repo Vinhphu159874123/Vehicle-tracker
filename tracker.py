@@ -14,54 +14,56 @@ class VehicleTracker:
     """
     
     def __init__(self):
-        """
-        TODO: Bạn cần implement
-        
-        Tasks:
-        1. Khởi tạo ByteTrack từ supervision
-        2. Setup tracking parameters từ config
-        
-        Hints:
-        - self.tracker = sv.ByteTrack(
-              track_thresh=config.TRACK_THRESH,
-              track_buffer=config.TRACK_BUFFER,
-              match_thresh=config.MATCH_THRESH
-          )
-        """
-        pass
+        """Khởi tạo BYTETracker"""
+        self.tracker = sv.ByteTrack(
+            track_activation_threshold=config.TRACK_THRESH,
+            lost_track_buffer=config.TRACK_BUFFER,
+            minimum_matching_threshold=config.MATCH_THRESH,
+            frame_rate=30
+        )
+        print(f"✅ ByteTrack initialized (thresh={config.TRACK_THRESH}, buffer={config.TRACK_BUFFER})")
     
     def update(self, detections):
-        """
-        Update tracker với detections từ frame hiện tại
+        """Update tracker và gán track_id cho mỗi detection"""
+        tracks = []
         
-        Args:
-            detections: list of dict từ detector.detect()
+        if not detections or len(detections) == 0:
+            return tracks
         
-        Returns:
-            tracks: list of dict, mỗi dict có:
-                {
-                    'track_id': int,
-                    'bbox': [x1, y1, x2, y2],
-                    'centroid': (cx, cy),
-                    'confidence': float,
-                    'class_id': int
+        # Convert sang supervision.Detections format
+        xyxy = []
+        confidences = []
+        class_ids = []
+        
+        for det in detections:
+            xyxy.append(det['bbox'])
+            confidences.append(det['confidence'])
+            class_ids.append(det['class_id'])
+        xyxy = np.array(xyxy, dtype=np.float32)
+        confidences = np.array(confidences, dtype=np.float32)
+        class_ids = np.array(class_ids, dtype=int)
+        detections_sv = sv.Detections(
+            xyxy=xyxy,
+            confidence=confidences,
+            class_id=class_ids
+        )
+        
+        # Update tracker (gán track_id)
+        detections_sv = self.tracker.update_with_detections(detections_sv)
+        if detections_sv.tracker_id is not None:
+            for i in range(len(detections_sv.xyxy)):
+                x1, y1, x2, y2 = detections_sv.xyxy[i]
+                centroid_x = (x1 + x2) / 2
+                centroid_y = (y1 + y2) / 2
+                
+                track = {
+                    'track_id': int(detections_sv.tracker_id[i]),
+                    'bbox': [int(x1), int(y1), int(x2), int(y2)],
+                    'centroid': (float(centroid_x), float(centroid_y)),
+                    'confidence': float(detections_sv.confidence[i]),
+                    'class_id': int(detections_sv.class_id[i])
                 }
+                
+                tracks.append(track)
         
-        TODO: Bạn cần implement
-        
-        Tasks:
-        1. Convert detections sang supervision Detections format
-        2. Update tracker: tracked = self.tracker.update_with_detections(detections_sv)
-        3. Convert tracked results về list of dict
-        4. Tính centroid cho mỗi track
-        
-        Hints:
-        - Detections format của supervision:
-          detections_sv = sv.Detections(
-              xyxy=np.array([bbox1, bbox2, ...]),
-              confidence=np.array([conf1, conf2, ...]),
-              class_id=np.array([cls1, cls2, ...])
-          )
-        - Centroid: cx = (x1+x2)/2, cy = (y1+y2)/2
-        """
-        pass
+        return tracks
