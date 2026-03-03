@@ -1,110 +1,146 @@
-"""
-Data Logger
-Nhiệm vụ: Lưu events vào CSV/Database, tạo summary reports
-"""
+"""Data Logger - Lưu events vào CSV/SQLite và tạo reports"""
 
 import csv
 import sqlite3
 from datetime import datetime
 import pandas as pd
 import config
+import os
 
 
 class DataLogger:
-    """
-    Log counting events và generate reports
-    """
+    """Log counting events và generate reports"""
     
     def __init__(self):
-        """
-        TODO: Bạn cần implement
+        """Khởi tạo CSV và SQLite database"""
+        self.csv_file = config.LOG_FILE
+        self.db_file = config.DATABASE_FILE
         
-        Tasks:
-        1. Setup CSV file (tạo file + header nếu chưa có)
-        2. Setup SQLite database (tạo tables nếu chưa có)
-        3. Khởi tạo counters cho summary
+        self._setup_csv()
+        self._setup_database()
         
-        Tables cần tạo:
-        - events: id, timestamp, direction, track_id, class_id
-        - summary: id, start_time, end_time, count_in, count_out, interval_seconds
+        print(f"✅ DataLogger initialized")
+        print(f"   CSV: {self.csv_file}")
+        print(f"   DB: {self.db_file}")
+    
+    def _setup_csv(self):
+        """Tạo CSV file với header nếu chưa có"""
+        if not os.path.exists(self.csv_file):
+            with open(self.csv_file, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['timestamp', 'direction', 'track_id', 'class_id'])
+            print(f"📝 Created CSV file: {self.csv_file}")
+    
+    def _setup_database(self):
+        """Tạo SQLite database và tables nếu chưa có"""
+        conn = sqlite3.connect(self.db_file)
+        cursor = conn.cursor()
         
-        Hints:
-        - CSV header: timestamp,direction,track_id,class_id,confidence
-        - SQLite: dùng sqlite3.connect(config.DATABASE_FILE)
-        """
-        pass
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                direction TEXT NOT NULL,
+                track_id INTEGER NOT NULL,
+                class_id INTEGER NOT NULL
+            )
+        ''')
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS summary (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                start_time TEXT NOT NULL,
+                end_time TEXT NOT NULL,
+                count_in INTEGER NOT NULL,
+                count_out INTEGER NOT NULL,
+                interval_seconds REAL NOT NULL
+            )
+        ''')
+        
+        conn.commit()
+        conn.close()
+        print(f"💾 Database ready: {self.db_file}")
     
     def log_event(self, event):
-        """
-        Log 1 counting event
+        """Log 1 counting event vào CSV và database"""
+        timestamp_str = datetime.fromtimestamp(event['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
         
-        Args:
-            event: dict từ counter.update()
-                {
-                    'track_id': int,
-                    'direction': 'IN'/'OUT',
-                    'timestamp': float,
-                    'class_id': int
-                }
+        with open(self.csv_file, 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                timestamp_str,
+                event['direction'],
+                event['track_id'],
+                event['class_id']
+            ])
         
-        TODO: Bạn cần implement
-        
-        Tasks:
-        1. Append vào CSV file
-        2. Insert vào SQLite events table
-        3. Update in-memory summary counters
-        
-        Hints:
-        - CSV: dùng csv.writer, mode='a'
-        - SQLite: dùng cursor.execute("INSERT INTO...")
-        - Nhớ commit() sau insert
-        """
-        pass
+        conn = sqlite3.connect(self.db_file)
+        cursor = conn.cursor()
+        cursor.execute(
+            'INSERT INTO events (timestamp, direction, track_id, class_id) VALUES (?, ?, ?, ?)',
+            (timestamp_str, event['direction'], event['track_id'], event['class_id'])
+        )
+        conn.commit()
+        conn.close()
     
     def save_summary(self, start_time, end_time, count_in, count_out):
-        """
-        Lưu summary report cho 1 khoảng thời gian
+        """Lưu summary report cho 1 khoảng thời gian"""
+        interval_seconds = (end_time - start_time).total_seconds()
         
-        Args:
-            start_time: datetime
-            end_time: datetime
-            count_in: int
-            count_out: int
+        start_str = start_time.strftime('%Y-%m-%d %H:%M:%S')
+        end_str = end_time.strftime('%Y-%m-%d %H:%M:%S')
         
-        TODO: Bạn cần implement
+        conn = sqlite3.connect(self.db_file)
+        cursor = conn.cursor()
+        cursor.execute(
+            'INSERT INTO summary (start_time, end_time, count_in, count_out, interval_seconds) VALUES (?, ?, ?, ?, ?)',
+            (start_str, end_str, count_in, count_out, interval_seconds)
+        )
+        conn.commit()
+        conn.close()
         
-        Tasks:
-        1. Insert vào summary table
-        2. Optional: in ra console
-        
-        Hints:
-        - Tính interval_seconds: (end_time - start_time).total_seconds()
-        """
-        pass
+        print(f"\n📊 Summary ({start_str} → {end_str}):")
+        print(f"   IN: {count_in} | OUT: {count_out} | TOTAL: {count_in + count_out}")
+        print(f"   Duration: {interval_seconds:.0f}s")
     
     def get_stats(self, hours=24):
+        """Lấy statistics từ database trong N giờ qua"""
+        conn = sqlite3.connect(self.db_file)
+        
+        query = f"""
+            SELECT * FROM events 
+            WHERE timestamp > datetime('now', '-{hours} hours')
+            ORDER BY timestamp
         """
-        Lấy statistics từ database
         
-        Args:
-            hours: int - lấy data từ N giờ trước
+        df = pd.read_sql_query(query, conn)
+        conn.close()
         
-        Returns:
-            dict: {
-                'total_in': int,
-                'total_out': int,
-                'hourly_stats': list of dict
+        if df.empty:
+            return {
+                'total_in': 0,
+                'total_out': 0,
+                'hourly_stats': []
             }
         
-        TODO: Bạn cần implement
+        total_in = len(df[df['direction'] == 'IN'])
+        total_out = len(df[df['direction'] == 'OUT'])
         
-        Tasks:
-        1. Query events từ database trong N giờ qua
-        2. Tính tổng IN/OUT
-        3. Group by hour để tạo hourly_stats
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        df['hour'] = df['timestamp'].dt.floor('H')
         
-        Hints:
-        - SQLite time: WHERE timestamp > datetime('now', '-24 hours')
-        - Pandas groupby giúp group theo hour
-        """
-        pass
+        hourly = df.groupby(['hour', 'direction']).size().unstack(fill_value=0)
+        hourly_stats = []
+        
+        for idx, row in hourly.iterrows():
+            hourly_stats.append({
+                'hour': idx.strftime('%Y-%m-%d %H:%M'),
+                'in': int(row.get('IN', 0)),
+                'out': int(row.get('OUT', 0))
+            })
+        
+        return {
+            'total_in': total_in,
+            'total_out': total_out,
+            'hourly_stats': hourly_stats
+        }

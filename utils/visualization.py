@@ -1,135 +1,88 @@
-"""
-Visualization Utilities
-Các hàm vẽ bbox, line, counts lên frame
-"""
+"""Visualization utilities - vẽ bbox, line, counts lên frame"""
 
 import cv2
 import numpy as np
 
 
 def draw_detections(frame, detections, color=(0, 255, 0)):
-    """
-    Vẽ bounding boxes lên frame
+    """Vẽ bounding boxes và labels cho detections"""
+    for det in detections:
+        bbox = det['bbox']
+        class_name = det.get('class_name', 'unknown')
+        class_id = det['class_id']
+        confidence = det['confidence']
+        
+        x1, y1, x2, y2 = map(int, bbox)
+        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+        
+        # Hiển thị class name và confidence
+        label = f"{class_name}({class_id}) {confidence:.2f}"
+        cv2.putText(frame, label, (x1, y1 - 5), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
     
-    Args:
-        frame: numpy array
-        detections: list of dict từ detector
-        color: BGR tuple
-    
-    Returns:
-        frame: frame đã vẽ
-    
-    TODO: Bạn cần implement
-    
-    Tasks:
-    1. Loop qua detections
-    2. Vẽ rectangle: cv2.rectangle()
-    3. Vẽ label (class + confidence): cv2.putText()
-    """
-    pass
+    return frame
 
 
 def draw_tracks(frame, tracks, color=(255, 0, 0)):
-    """
-    Vẽ tracked objects với track_id
+    """Vẽ tracked objects với track_id và centroid"""
+    for track in tracks:
+        bbox = track['bbox']
+        track_id = track['track_id']
+        centroid = track['centroid']
+        
+        x1, y1, x2, y2 = map(int, bbox)
+        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+        
+        label = f"ID:{track_id}"
+        cv2.putText(frame, label, (x1, y1 - 5), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+        
+        cx, cy = map(int, centroid)
+        cv2.circle(frame, (cx, cy), 4, (0, 255, 255), -1)
     
-    Args:
-        frame: numpy array
-        tracks: list of dict từ tracker
-        color: BGR tuple
-    
-    Returns:
-        frame: frame đã vẽ
-    
-    TODO: Bạn cần implement
-    
-    Tasks:
-    1. Vẽ bbox với màu khác detection
-    2. Vẽ track_id lên mỗi bbox
-    3. Optional: vẽ centroid (chấm tròn nhỏ)
-    """
-    pass
+    return frame
 
 
 def draw_roi(frame, roi_polygon, color=(0, 255, 255), alpha=0.3):
-    """
-    Vẽ ROI polygon (semi-transparent)
+    """Vẽ ROI polygon với transparency"""
+    overlay = frame.copy()
     
-    Args:
-        frame: numpy array
-        roi_polygon: numpy array hoặc list of tuples
-        color: BGR tuple
-        alpha: transparency (0-1)
+    if isinstance(roi_polygon, list):
+        roi_polygon = np.array(roi_polygon, dtype=np.int32)
     
-    Returns:
-        frame: frame đã vẽ
+    cv2.fillPoly(overlay, [roi_polygon], color)
+    cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+    cv2.polylines(frame, [roi_polygon], True, color, 2)
     
-    TODO: Bạn cần implement
-    
-    Tasks:
-    1. Tạo overlay layer
-    2. Fill polygon: cv2.fillPoly()
-    3. Blend với frame: cv2.addWeighted()
-    4. Vẽ contour: cv2.polylines()
-    """
-    pass
+    return frame
 
 
 def draw_line(frame, line_start, line_end, color=(0, 0, 255), thickness=3):
-    """
-    Vẽ counting line
+    """Vẽ counting line với arrow"""
+    cv2.line(frame, line_start, line_end, color, thickness)
     
-    Args:
-        frame: numpy array
-        line_start: tuple (x1, y1)
-        line_end: tuple (x2, y2)
-        color: BGR tuple
-        thickness: int
-    
-    Returns:
-        frame: frame đã vẽ
-    
-    TODO: Bạn cần implement
-    
-    Tasks:
-    1. Vẽ line: cv2.line()
-    2. Vẽ arrow heads ở 2 đầu (optional)
-    """
-    pass
+    return frame
 
 
 def draw_counts(frame, count_in, count_out, position=(50, 50)):
-    """
-    Vẽ counters lên frame
+    """Vẽ counters với background"""
+    text = f"IN: {count_in} | OUT: {count_out} | TOTAL: {count_in + count_out}"
+    x, y = position
     
-    Args:
-        frame: numpy array
-        count_in: int
-        count_out: int
-        position: tuple (x, y) top-left
+    (text_w, text_h), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
+    cv2.rectangle(frame, (x - 10, y - text_h - 10), (x + text_w + 10, y + 10), (0, 0, 0), -1)
+    cv2.rectangle(frame, (x - 10, y - text_h - 10), (x + text_w + 10, y + 10), (0, 255, 0), 2)
     
-    Returns:
-        frame: frame đã vẽ
+    cv2.putText(frame, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
     
-    TODO: Bạn cần implement
-    
-    Tasks:
-    1. Vẽ background box (semi-transparent)
-    2. Vẽ text "IN: XX | OUT: YY"
-    3. Dùng font to, màu nổi bật
-    
-    Hints:
-    - cv2.rectangle() cho background
-    - cv2.putText() cho text
-    - Font: cv2.FONT_HERSHEY_SIMPLEX
-    """
-    pass
+    return frame
 
 
 def draw_fps(frame, fps, position=(50, 100)):
-    """
-    Vẽ FPS lên frame
+    """Vẽ FPS info"""
+    text = f"FPS: {fps:.1f}"
+    x, y = position
     
-    TODO: Simple, bạn tự implement
-    """
-    pass
+    cv2.putText(frame, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+    
+    return frame

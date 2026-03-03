@@ -4,32 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Counting Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* TODO: Bạn có thể tự design CSS */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            background: #1a1a1a;
             color: #fff;
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
         
-        h1 {
+        .header {
             text-align: center;
-            color: #00ff88;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.6s ease;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a8edea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: rgba(255,255,255,0.8);
+            font-weight: 500;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid rgba(16, 185, 129, 0.5);
+            border-radius: 20px;
+            color: #10b981;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         .video-container {
-            background: #000;
-            border: 2px solid #333;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
             overflow: hidden;
-            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeInLeft 0.8s ease;
+        }
+
+        .video-header {
+            padding: 20px 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .video-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .video-container img {
@@ -38,101 +111,390 @@
             display: block;
         }
         
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        .stats-panel {
+            display: flex;
+            flex-direction: column;
             gap: 20px;
-            margin-bottom: 20px;
+            animation: fadeInRight 0.8s ease;
         }
-        
+
         .stat-card {
-            background: #2a2a2a;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #444;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-icon.in {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .stat-icon.out {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .stat-icon.net {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .stat-icon.time {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
         }
         
         .stat-label {
-            color: #888;
+            color: rgba(255, 255, 255, 0.8);
             font-size: 14px;
-            margin-bottom: 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .stat-value {
-            font-size: 36px;
-            font-weight: bold;
-            color: #00ff88;
+            font-size: 48px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+            margin-top: 5px;
+            transition: all 0.3s ease;
         }
-        
-        .stat-value.out {
-            color: #ff4444;
+
+        .stat-value.animate {
+            animation: countUp 0.5s ease;
         }
-        
-        /* TODO: Thêm styles cho charts nếu cần */
+
+        @keyframes countUp {
+            from { transform: scale(1.2); opacity: 0.5; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .stat-small {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: fadeInUp 1s ease;
+        }
+
+        .chart-container h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        canvas {
+            max-height: 300px;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>🚗 Vehicle Counting System</h1>
-        
-        <div class="video-container">
-            <!-- Video stream -->
-            <img src="{{ url_for('video_feed') }}" alt="Live Feed">
+        <div class="header">
+            <h1>🚗 Vehicle Counting System</h1>
+            <p>Real-time AI-Powered Traffic Monitoring</p>
+            <span class="status-badge">● LIVE</span>
         </div>
         
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-label">Vehicles IN</div>
-                <div class="stat-value" id="count-in">0</div>
+        <div class="main-grid">
+            <div class="video-container">
+                <div class="video-header">
+                    <h2>📹 Live Camera Feed</h2>
+                </div>
+                <img src="{{ url_for('video_feed') }}" alt="Live Feed" id="video-feed">
             </div>
             
-            <div class="stat-card">
-                <div class="stat-label">Vehicles OUT</div>
-                <div class="stat-value out" id="count-out">0</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">Net (IN - OUT)</div>
-                <div class="stat-value" id="count-net">0</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">Last Update</div>
-                <div class="stat-value" id="last-update" style="font-size: 16px;">--:--:--</div>
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon in">↓</div>
+                        <div>
+                            <div class="stat-label">Vehicles IN</div>
+                            <div class="stat-value" id="count-in">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon out">↑</div>
+                        <div>
+                            <div class="stat-label">Vehicles OUT</div>
+                            <div class="stat-value" id="count-out">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon net">∑</div>
+                        <div>
+                            <div class="stat-label">Net Count</div>
+                            <div class="stat-value" id="count-net">0</div>
+                            <div class="stat-small" id="total-text">Total: 0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon time">🕐</div>
+                        <div>
+                            <div class="stat-label">Last Update</div>
+                            <div class="stat-value" id="last-update" style="font-size: 20px;">--:--:--</div>
+                            <div class="stat-small" id="fps-display">FPS: --</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <!-- TODO: Thêm chart cho hourly statistics nếu muốn -->
-        <!-- Có thể dùng Chart.js hoặc Plotly -->
+        <div class="chart-container">
+            <h2>📊 Hourly Traffic Statistics</h2>
+            <canvas id="trafficChart"></canvas>
+        </div>
     </div>
     
     <script>
-        // TODO: Bạn cần implement WebSocket connection
+        let chart = null;
+        let previousCountIn = 0;
+        let previousCountOut = 0;
+        
+        // Initialize Chart
+        function initChart() {
+            const ctx = document.getElementById('trafficChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Vehicles IN',
+                            data: [],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        },
+                        {
+                            label: 'Vehicles OUT',
+                            data: [],
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.8)',
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'rgba(255, 255, 255, 0.6)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: 'rgba(255, 255, 255, 0.6)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update stats with animation
+        function updateStats(data) {
+            const countInEl = document.getElementById('count-in');
+            const countOutEl = document.getElementById('count-out');
+            const countNetEl = document.getElementById('count-net');
+            const totalTextEl = document.getElementById('total-text');
+            const lastUpdateEl = document.getElementById('last-update');
+            const fpsEl = document.getElementById('fps-display');
+            
+            // Animate if value changed
+            if (data.count_in !== previousCountIn) {
+                countInEl.classList.add('animate');
+                setTimeout(() => countInEl.classList.remove('animate'), 500);
+                previousCountIn = data.count_in;
+            }
+            
+            if (data.count_out !== previousCountOut) {
+                countOutEl.classList.add('animate');
+                setTimeout(() => countOutEl.classList.remove('animate'), 500);
+                previousCountOut = data.count_out;
+            }
+            
+            countInEl.textContent = data.count_in || 0;
+            countOutEl.textContent = data.count_out || 0;
+            countNetEl.textContent = (data.count_in - data.count_out) || 0;
+            totalTextEl.textContent = `Total: ${data.count_in + data.count_out || 0}`;
+            
+            const now = new Date();
+            lastUpdateEl.textContent = now.toLocaleTimeString('vi-VN');
+            
+            if (data.fps) {
+                fpsEl.textContent = `FPS: ${data.fps.toFixed(1)}`;
+            }
+        }
+        
+        // Update chart
+        function updateChart(hourlyData) {
+            if (!chart || !hourlyData || hourlyData.length === 0) return;
+            
+            chart.data.labels = hourlyData.map(d => d.hour);
+            chart.data.datasets[0].data = hourlyData.map(d => d.in);
+            chart.data.datasets[1].data = hourlyData.map(d => d.out);
+            chart.update('none');
+        }
         
         // Connect to SocketIO
         const socket = io();
         
-        // Listen for stats updates
-        socket.on('stats_update', function(data) {
-            // TODO: Update DOM với data mới
-            // document.getElementById('count-in').textContent = data.count_in;
-            // document.getElementById('count-out').textContent = data.count_out;
-            // ...
+        socket.on('connect', function() {
+            console.log('✅ Connected to server');
         });
         
-        // Optional: Periodic API polling fallback
-        function updateStats() {
+        socket.on('stats_update', function(data) {
+            updateStats(data);
+            if (data.hourly_stats) {
+                updateChart(data.hourly_stats);
+            }
+        });
+        
+        socket.on('disconnect', function() {
+            console.log('⚠️ Disconnected from server');
+        });
+        
+        // Fallback: Periodic API polling
+        function fetchStats() {
             fetch('/api/stats')
                 .then(response => response.json())
                 .then(data => {
-                    // TODO: Update stats
+                    updateStats(data);
+                    if (data.hourly_stats) {
+                        updateChart(data.hourly_stats);
+                    }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => console.error('Error fetching stats:', error));
         }
         
-        // Update every 5 seconds as fallback
-        // setInterval(updateStats, 5000);
+        // Initialize
+        initChart();
+        fetchStats();
+        
+        // Update every 2 seconds as fallback
+        setInterval(fetchStats, 2000);
     </script>
 </body>
 </html>
