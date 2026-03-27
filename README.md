@@ -4,12 +4,12 @@
 ![Ultralytics YOLO](https://img.shields.io/badge/Ultralytics%20YOLO-AGPL--3.0-orange)
 ![OpenCV](https://img.shields.io/badge/OpenCV-Apache--2.0-blue)
 ![Tracker](https://img.shields.io/badge/Tracking-ByteTrack-5C4EE5)
-![Project License](https://img.shields.io/badge/Project%20License-Not%20Specified-lightgrey)
+
 
 ## System Preview
 The figure below shows the current pipeline output, including ROI overlay, line-crossing boundary, object tracks, class labels, confidence, and directional counters.
 
-![Vehicle counting pipeline preview](data/Screenshot%202026-03-27%20235833.png)
+![Vehicle counting pipeline preview](Demo/Screenshot%202026-03-27%20235833.png)
 
 ## Table of Contents
 - [Problem Statement and Practical Relevance](#problem-statement-and-practical-relevance)
