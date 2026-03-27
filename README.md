@@ -1,16 +1,37 @@
 ﻿# Vehicle Counting System
 
+## Problem Statement and Practical Relevance
+In many operational sites (for example, access lanes, workshop yards, and loading areas), manual counting is unreliable when vehicles stop, reverse, or rotate near a gate boundary. This project addresses that issue by providing an automated direction-aware counting pipeline with logging support for operational monitoring.
+
+The configured classes target practical mixed-traffic scenarios frequently observed in Vietnam:
+- motorbike
+- small_cart
+- three_wheeler
+
+This scope is intended for site-specific deployment after local calibration and model adaptation, rather than a universal model for all traffic conditions.
+
 ## 1. Overview
 This project implements a video-based vehicle counting pipeline for estimating inbound and outbound traffic in a predefined region. The system combines object detection, multi-object tracking, region-of-interest filtering, and line-crossing logic to produce directional counts (IN and OUT) and event logs.
+
+The primary engineering objective is to deliver a deployable counting workflow for practical surveillance environments, where vehicles may stop, reverse, or move in dense formations near the counting line.
 
 The current implementation is designed for three target classes:
 - motorbike
 - small_cart
 - three_wheeler
 
+Application context:
+- The selected classes are aligned with mixed-traffic scenes frequently observed in Vietnam, including informal utility vehicles such as small carts and three-wheelers.
+- The system is intended for site-specific deployment (for example, yards, access roads, and loading zones) after local calibration of ROI, line geometry, and model weights.
+
 Model note:
 - YOLO backbones from Ultralytics (for example, yolov8n.pt or yolov8s.pt) are pretrained on COCO.
 - The project can load a custom file such as best.pt, which is typically obtained by fine-tuning from a pretrained YOLO checkpoint on local labeled data.
+
+## Third-Party License Notice
+- Ultralytics YOLO codebase and package are distributed under AGPL-3.0 (or commercial terms from Ultralytics).
+- OpenCV (cv2) is distributed under Apache-2.0 for OpenCV 4.x.
+- Additional transitive dependencies may have their own licenses; users should review the dependency metadata in the runtime environment before production distribution.
 
 ## 2. Research Context and Scope
 The system targets practical deployment scenarios where camera viewpoints are oblique, object scales vary, and motion can be intermittent near the counting line. To improve counting stability, the pipeline includes multiple anti-noise mechanisms:
@@ -18,6 +39,9 @@ The system targets practical deployment scenarios where camera viewpoints are ob
 - track age and displacement validation before counting
 - per-track cooldown
 - cross-track duplicate suppression in a short temporal-spatial window
+- re-arm gating, requiring a tracked object to move sufficiently far from the line before it can be counted again
+
+In operational terms, this design addresses common field issues such as repeated counting when a vehicle rotates near the boundary, fragmented tracks in crowded scenes, and short-term ID instability under occlusion.
 
 ## 3. System Architecture
 The pipeline is organized into the following modules:
@@ -181,4 +205,4 @@ To obtain reproducible experiments:
 - Record model version and thresholds with every evaluation.
 
 ## 13. Conclusion
-This codebase provides a practical and extensible baseline for directional vehicle counting under real-world surveillance conditions. With calibrated geometry and domain-specific model training, the system can be adapted for stable deployment in constrained traffic scenes.
+This codebase provides a practical and extensible baseline for directional vehicle counting under real-world surveillance conditions. With calibrated geometry, scenario-specific thresholds, and local model fine-tuning, the system can support reliable monitoring workflows in mixed-traffic environments and produce auditable traffic logs for operational decision-making.
