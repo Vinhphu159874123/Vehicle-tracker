@@ -18,7 +18,7 @@ class VehicleCountingSystem:
     
     def __init__(self):
         """Khởi tạo tất cả components"""
-        print("🚀 Initializing Vehicle Counting System...\n")
+        print("Initializing Vehicle Counting System...\n")
         
         self.detector = VehicleDetector()
         self.tracker = VehicleTracker()
@@ -36,11 +36,11 @@ class VehicleCountingSystem:
         self.start_time = datetime.now()
         self.last_summary_time = datetime.now()
         
-        print("✅ All components initialized!\n")
+        print("All components initialized!\n")
     
     def run(self):
         """Main processing loop"""
-        print("🎬 Starting main loop...\n")
+        print(" Starting main loop...\n")
         print("Press 'q' to quit\n")
         
         fps_start_time = time.time()
@@ -50,7 +50,7 @@ class VehicleCountingSystem:
             while True:
                 ret, frame = self.cap.read()
                 if not ret:
-                    print("⚠️ End of video or cannot read frame")
+                    print(" End of video or cannot read frame")
                     break
                 
                 # Resize frame về kích thước cố định để ROI/line coordinates luôn đúng
@@ -62,7 +62,7 @@ class VehicleCountingSystem:
                 
                 for event in events:
                     self.logger.log_event(event)
-                    print(f"🚗 Vehicle {event['direction']}: Track #{event['track_id']}")
+                    print(f"{event.get('class_name', 'unknown')} {event['direction']}: Track #{event['track_id']}")
                 
                 fps_frame_count += 1
                 if time.time() - fps_start_time >= 1.0:
@@ -85,11 +85,11 @@ class VehicleCountingSystem:
                     cv2.imshow('Vehicle Counting System', frame)
                     
                     if cv2.waitKey(1) & 0xFF == ord('q'):
-                        print("\n🛑 User requested quit")
+                        print("\nUser requested quit")
                         break
         
         except KeyboardInterrupt:
-            print("\n\n⏸️ Interrupted by user")
+            print("\n\n⏸Interrupted by user")
         
         finally:
             self.cleanup()
@@ -109,7 +109,7 @@ class VehicleCountingSystem:
         frame = draw_line(frame, config.LINE_START, config.LINE_END)
         
         # Vẽ detections (màu xanh lá) - hiển thị tất cả objects được detect
-        frame = draw_detections(frame, detections_roi, color=(0, 255, 0))
+        frame = draw_detections(frame, detections_roi, color=(0, 255, 0), show_labels=False)
         
         # Vẽ tracks (màu đỏ) - chỉ hiển thị tracked objects (mature tracks)
         frame = draw_tracks(frame, tracks)
@@ -122,19 +122,19 @@ class VehicleCountingSystem:
     
     def cleanup(self):
         """Cleanup resources"""
-        print("\n🧹 Cleaning up...")
+        print("\nCleaning up...")
         
         counts = self.counter.get_counts()
-        print(f"\n📊 Final counts:")
-        print(f"   IN: {counts['in']}")
-        print(f"   OUT: {counts['out']}")
-        print(f"   TOTAL: {counts['total']}")
-        print(f"   Frames processed: {self.frame_count}")
+        # print(f"\n Final counts:")
+        # print(f"   IN: {counts['in']}")
+        # print(f"   OUT: {counts['out']}")
+        # print(f"   TOTAL: {counts['total']}")
+        # print(f"   Frames processed: {self.frame_count}")
         
         self.cap.release()
         cv2.destroyAllWindows()
         
-        print("\n✅ System stopped gracefully")
+        print("\nSystem stopped gracefully")
 
 
 def main():
@@ -145,12 +145,12 @@ def main():
     print()
     
     if config.ROI_POLYGON is None:
-        print("❌ ERROR: ROI chưa được set!")
+        print(" ERROR: ROI chưa được set!")
         print("Chạy: python utils/roi_selector.py")
         return
     
     if config.LINE_START is None or config.LINE_END is None:
-        print("❌ ERROR: Line chưa được set!")
+        print(" ERROR: Line chưa được set!")
         print("Chạy: python utils/roi_selector.py")
         return
     
@@ -158,7 +158,7 @@ def main():
         system = VehicleCountingSystem()
         system.run()
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n Error: {e}")
         import traceback
         traceback.print_exc()
 

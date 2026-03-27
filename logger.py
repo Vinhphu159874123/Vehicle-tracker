@@ -19,7 +19,7 @@ class DataLogger:
         self._setup_csv()
         self._setup_database()
         
-        print(f"✅ DataLogger initialized")
+        print(f"DataLogger initialized")
         print(f"   CSV: {self.csv_file}")
         print(f"   DB: {self.db_file}")
     
@@ -29,7 +29,7 @@ class DataLogger:
             with open(self.csv_file, 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(['timestamp', 'direction', 'track_id', 'class_id'])
-            print(f"📝 Created CSV file: {self.csv_file}")
+            print(f"Created CSV file: {self.csv_file}")
     
     def _setup_database(self):
         """Tạo SQLite database và tables nếu chưa có"""
@@ -59,7 +59,7 @@ class DataLogger:
         
         conn.commit()
         conn.close()
-        print(f"💾 Database ready: {self.db_file}")
+        print(f"Database ready: {self.db_file}")
     
     def log_event(self, event):
         """Log 1 counting event vào CSV và database"""
@@ -99,9 +99,9 @@ class DataLogger:
         conn.commit()
         conn.close()
         
-        print(f"\n📊 Summary ({start_str} → {end_str}):")
-        print(f"   IN: {count_in} | OUT: {count_out} | TOTAL: {count_in + count_out}")
-        print(f"   Duration: {interval_seconds:.0f}s")
+        print(f"\nSummary ({start_str} → {end_str}):")
+        print(f"IN: {count_in} | OUT: {count_out} | TOTAL: {count_in + count_out}")
+        print(f"Duration: {interval_seconds:.0f}s")
     
     def get_stats(self, hours=24):
         """Lấy statistics từ database trong N giờ qua"""
