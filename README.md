@@ -1,5 +1,33 @@
 ﻿# Vehicle Counting System
 
+![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB)
+![Ultralytics YOLO](https://img.shields.io/badge/Ultralytics%20YOLO-AGPL--3.0-orange)
+![OpenCV](https://img.shields.io/badge/OpenCV-Apache--2.0-blue)
+![Tracker](https://img.shields.io/badge/Tracking-ByteTrack-5C4EE5)
+![Project License](https://img.shields.io/badge/Project%20License-Not%20Specified-lightgrey)
+
+## System Preview
+The figure below shows the current pipeline output, including ROI overlay, line-crossing boundary, object tracks, class labels, confidence, and directional counters.
+
+![Vehicle counting pipeline preview](data/Screenshot%202026-03-27%20235833.png)
+
+## Table of Contents
+- [Problem Statement and Practical Relevance](#problem-statement-and-practical-relevance)
+- [Overview](#1-overview)
+- [Third-Party License Notice](#third-party-license-notice)
+- [Research Context and Scope](#2-research-context-and-scope)
+- [System Architecture](#3-system-architecture)
+- [Repository Structure](#4-repository-structure)
+- [Data Flow](#5-data-flow)
+- [Installation](#6-installation)
+- [Configuration](#7-configuration)
+- [Running Procedure](#8-running-procedure)
+- [Event and Storage Format](#9-event-and-storage-format)
+- [Practical Tuning Guidelines](#10-practical-tuning-guidelines)
+- [Known Limitations](#11-known-limitations)
+- [Reproducibility Notes](#12-reproducibility-notes)
+- [Conclusion](#13-conclusion)
+
 ## Problem Statement and Practical Relevance
 In many operational sites (for example, access lanes, workshop yards, and loading areas), manual counting is unreliable when vehicles stop, reverse, or rotate near a gate boundary. This project addresses that issue by providing an automated direction-aware counting pipeline with logging support for operational monitoring.
 
