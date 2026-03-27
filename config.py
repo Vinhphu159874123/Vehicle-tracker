@@ -8,32 +8,32 @@ Chỉnh tất cả parameters ở đây
 # ======================
 # Chọn 1 trong 2:
 # VIDEO_SOURCE = "data/test_video.mp4"  # Video file
-VIDEO_SOURCE = "rtsp://admin:dg12345678@192.168.1.79:554/cam/realmonitor?channel=1&subtype=0"  # RTSP stream - Main stream (nét hơn)
-
+# VIDEO_SOURCE = "rtsp://admin:dg12345678@192.168.1.79:554/cam/realmonitor?channel=1&subtype=0"  # RTSP stream - Main stream (nét hơn)
+VIDEO_SOURCE = "data/20260327143644.mp4"
 # ======================
 # YOLO DETECTION
 # ======================
-YOLO_MODEL = "yolov8n.pt"  # yolov8n.pt (nhanh) hoặc yolov8s.pt (chính xác hơn)
+YOLO_MODEL = "best.pt"  # yolov8n.pt (nhanh) hoặc yolov8s.pt (chính xác hơn)
 CONFIDENCE_THRESHOLD = 0.30  # Ngưỡng confidence - TĂNG để giảm false positives
 IOU_THRESHOLD = 0.5          # Non-max suppression
 # TARGET_CLASSES = [2, 3, 5, 7]  # COCO classes: 2=car, 3=motorcycle, 5=bus, 7=truck
 TARGET_CLASSES = None  # BỎ class filter - chấp nhận tất cả (vì YOLO nhầm class do góc nhìn)
 MIN_BOX_AREA = 500           # Bỏ bbox quá nhỏ (pixels^2) - TĂNG để lọc noise
-
+TARGET_CLASS_NAMES = ["motorbike", "small_cart", "three_wheeler"]
 # ======================
 # ROI (Region of Interest)
 # ======================
 # Polygon points (x, y) - chạy roi_selector.py để lấy
 # Format: [(x1,y1), (x2,y2), (x3,y3), (x4,y4), ...]
-ROI_POLYGON = [(93, 86), (245, 21), (549, 298), (213, 470), (91, 86)]
+ROI_POLYGON = [(165, 51), (301, 1), (758, 131), (1271, 635), (1110, 717), (134, 702), (162, 51)]
 
 # ======================
 # LINE CROSSING
 # ======================
 # Line coordinates: (x1, y1) -> (x2, y2)
 # Chạy roi_selector.py để set
-LINE_START = (178, 331)
-LINE_END = (418, 191)
+LINE_START = (954, 327)
+LINE_END = (367, 697)
 
 # Direction: "horizontal" hoặc "vertical"
 # - "horizontal": Line nằm ngang (━━━), xe đi dọc (↑↓)
