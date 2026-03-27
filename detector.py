@@ -17,6 +17,7 @@ class VehicleDetector:
     def __init__(self):
         """Load YOLO model và warm up"""
         self.model = YOLO(config.YOLO_MODEL)
+        self.verbose_logs = getattr(config, 'VERBOSE_LOGS', False)
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.model.to(self.device)
         dummy_frame = np.zeros((640, 480, 3), dtype=np.uint8)
@@ -57,14 +58,18 @@ class VehicleDetector:
                 area = width * height
                 
                 # Debug: in thông tin TRƯỚC KHI filter
-                if i == 0 and self._frame_count % 30 == 0:  # Chỉ in object đầu tiên
-                    print(f"   📦 Detection sample: class={class_name}({class_id}), conf={confidence:.2f}, area={area:.0f}")
+                if self.verbose_logs and i == 0 and self._frame_count % 30 == 0:  # Chỉ in object đầu tiên
+                    print(f"Detection sample: class={class_name}({class_id}), conf={confidence:.2f}, area={area:.0f}")
                 
                 # Filter: class, confidence, area
                 # TEMP: Comment class filter để test
                 # if class_id not in config.TARGET_CLASSES:
                 #     continue
                 
+                target_names = getattr(config, 'TARGET_CLASS_NAMES', None)
+                if target_names is not None and class_name not in target_names:
+                    continue
+
                 if config.TARGET_CLASSES is not None and class_id not in config.TARGET_CLASSES:
                     continue
                 
@@ -85,8 +90,8 @@ class VehicleDetector:
                 detections.append(detection)
         
         # Debug print mỗi 30 frames
-        if self._frame_count % 30 == 0:
-            print(f"🔍 YOLO: {total_boxes} total | {len(detections)} after filter")
+        if self.verbose_logs and self._frame_count % 30 == 0:
+            print(f": {total_boxes} total | {len(detections)} after filter")
         
         return detections
     
@@ -94,9 +99,9 @@ class VehicleDetector:
         """Lọc detections nằm trong ROI polygon"""
         
         # TEMP: DISABLE ROI filter để test line crossing
-        if len(detections) > 0:
-            print(f"⚠️ ROI Filter DISABLED - accepting all {len(detections)} detections")
-        return detections
+        # if len(detections) > 0:
+            # print(f" ROI Filter DISABLED - accepting all {len(detections)} detections")
+        # return detections
         
         if roi_polygon is None:
             return detections
@@ -123,7 +128,7 @@ class VehicleDetector:
                 filtered_detections.append(det)
         
         # Debug print
-        if self._roi_frame_count % 30 == 0 and len(detections) > 0:
-            print(f"📍 ROI Filter: {len(detections)} before | {len(filtered_detections)} after")
+        if self.verbose_logs and self._roi_frame_count % 30 == 0 and len(detections) > 0:
+            print(f"ROI Filter: {len(detections)} before | {len(filtered_detections)} after")
         
         return filtered_detections

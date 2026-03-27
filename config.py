@@ -8,12 +8,12 @@ Chỉnh tất cả parameters ở đây
 # ======================
 # Chọn 1 trong 2:
 # VIDEO_SOURCE = "data/test_video.mp4"  # Video file
-# VIDEO_SOURCE = "rtsp://admin:dg12345678@192.168.1.79:554/cam/realmonitor?channel=1&subtype=0"  # RTSP stream - Main stream (nét hơn)
-VIDEO_SOURCE = "data/20260327143644.mp4"
+# VIDEO_SOURCE = "rtsp://admin:8dg12345678@192.168.1.79:554/cam/realmonitor?channel=1&subtype=0"  # RTSP stream - Main stream (nét hơn)
+VIDEO_SOURCE = "data/20260327151909.mp4"
 # ======================
 # YOLO DETECTION
 # ======================
-YOLO_MODEL = "best.pt"  # yolov8n.pt (nhanh) hoặc yolov8s.pt (chính xác hơn)
+YOLO_MODEL = "best_yolo_v8n.pt"  # yolov8n.pt (nhanh) hoặc yolov8s.pt (chính xác hơn)
 CONFIDENCE_THRESHOLD = 0.30  # Ngưỡng confidence - TĂNG để giảm false positives
 IOU_THRESHOLD = 0.5          # Non-max suppression
 # TARGET_CLASSES = [2, 3, 5, 7]  # COCO classes: 2=car, 3=motorcycle, 5=bus, 7=truck
@@ -53,7 +53,11 @@ MATCH_THRESH = 0.8        # Matching threshold
 # Anti-noise filters  
 MIN_TRACK_AGE = 0.2       # Track phải tồn tại >= N GIÂY mới đếm (0.2s ~ 2 frames @ 9fps) - GIẢM để test
 MIN_DISPLACEMENT = 10     # Di chuyển tối thiểu (pixels) - GIẢM để test
-COUNTING_COOLDOWN = 2.0   # Giây cooldown sau khi đếm (tránh đếm lại)
+COUNTING_COOLDOWN = 10.0   # Giây cooldown sau khi đếm (tránh đếm lại)
+REARM_DISTANCE_FROM_LINE = 120  # px: sau khi đếm, track phải rời xa line đủ ngưỡng mới được đếm lại
+# Chống đếm trùng khi 1 xe bị tách thành nhiều track_id gần nhau
+DUPLICATE_EVENT_WINDOW = 2.0   # Giây: 2 event quá gần thời gian sẽ bị so trùng
+DUPLICATE_EVENT_DISTANCE = 220 # Pixels: 2 event quá gần vị trí sẽ coi là cùng 1 xe
 
 # ======================
 # LOGGING
@@ -75,3 +79,6 @@ STREAM_FPS = 15  # FPS cho web stream (thấp hơn realtime để tiết kiệm 
 DISPLAY_WINDOW = True    # Hiện cửa sổ OpenCV khi debug
 DISPLAY_WIDTH = 1280     # Resize frame để hiển thị
 DISPLAY_HEIGHT = 720
+
+# Runtime logging control
+VERBOSE_LOGS = False
