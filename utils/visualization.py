@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 
-def draw_detections(frame, detections, color=(0, 255, 0)):
+def draw_detections(frame, detections, color=(0, 255, 0), show_labels=True):
     """Vẽ bounding boxes và labels cho detections"""
     for det in detections:
         bbox = det['bbox']
@@ -15,10 +15,12 @@ def draw_detections(frame, detections, color=(0, 255, 0)):
         x1, y1, x2, y2 = map(int, bbox)
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
         
-        # Hiển thị class name và confidence
-        label = f"{class_name}({class_id}) {confidence:.2f}"
-        cv2.putText(frame, label, (x1, y1 - 5), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+        if show_labels:
+            # Place detection text above bbox
+            label = f"{class_name}({class_id}) {confidence:.2f}"
+            text_y = max(15, y1 - 8)
+            cv2.putText(frame, label, (x1, text_y),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
     
     return frame
 
@@ -29,12 +31,15 @@ def draw_tracks(frame, tracks, color=(255, 0, 0)):
         bbox = track['bbox']
         track_id = track['track_id']
         centroid = track['centroid']
+        class_name = track.get('class_name', f"class_{track.get('class_id', -1)}")
+        confidence = float(track.get('confidence', 0.0))
         
         x1, y1, x2, y2 = map(int, bbox)
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
         
-        label = f"ID:{track_id}"
-        cv2.putText(frame, label, (x1, y1 - 5), 
+        label = f"ID:{track_id} {class_name} {confidence * 100:.0f}%"
+        text_y = min(frame.shape[0] - 8, y1 + 20)
+        cv2.putText(frame, label, (x1, text_y), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
         
         cx, cy = map(int, centroid)
@@ -43,7 +48,7 @@ def draw_tracks(frame, tracks, color=(255, 0, 0)):
     return frame
 
 
-def draw_roi(frame, roi_polygon, color=(0, 255, 255), alpha=0.3):
+def draw_roi(frame, roi_polygon, color=(0, 255, 255), alpha=0.15):
     """Vẽ ROI polygon với transparency"""
     overlay = frame.copy()
     
