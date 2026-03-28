@@ -21,11 +21,18 @@ class VehicleTracker:
             minimum_matching_threshold=config.MATCH_THRESH,
             frame_rate=30
         )
-        print(f"✅ ByteTrack initialized (thresh={config.TRACK_THRESH}, buffer={config.TRACK_BUFFER})")
+        print(f" ByteTrack initialized (thresh={config.TRACK_THRESH}, buffer={config.TRACK_BUFFER})")
     
     def update(self, detections):
         """Update tracker và gán track_id cho mỗi detection"""
         tracks = []
+
+        target_names = getattr(config, 'TARGET_CLASS_NAMES', [])
+
+        def resolve_class_name(class_id):
+            if isinstance(target_names, list) and 0 <= class_id < len(target_names):
+                return target_names[class_id]
+            return f"class_{class_id}"
         
         if not detections or len(detections) == 0:
             return tracks
@@ -61,7 +68,8 @@ class VehicleTracker:
                     'bbox': [int(x1), int(y1), int(x2), int(y2)],
                     'centroid': (float(centroid_x), float(centroid_y)),
                     'confidence': float(detections_sv.confidence[i]),
-                    'class_id': int(detections_sv.class_id[i])
+                    'class_id': int(detections_sv.class_id[i]),
+                    'class_name': resolve_class_name(int(detections_sv.class_id[i]))
                 }
                 
                 tracks.append(track)

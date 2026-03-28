@@ -9,7 +9,7 @@ Chỉnh tất cả parameters ở đây
 # Chọn 1 trong 2:
 # VIDEO_SOURCE = "data/test_video.mp4"  # Video file
 # VIDEO_SOURCE = "rtsp://admin:8dg12345678@192.168.1.79:554/cam/realmonitor?channel=1&subtype=0"  # RTSP stream - Main stream (nét hơn)
-VIDEO_SOURCE = "data/20260327151909.mp4"
+VIDEO_SOURCE = "data/20260327143644.mp4"
 # ======================
 # YOLO DETECTION
 # ======================
@@ -25,15 +25,15 @@ TARGET_CLASS_NAMES = ["motorbike", "small_cart", "three_wheeler"]
 # ======================
 # Polygon points (x, y) - chạy roi_selector.py để lấy
 # Format: [(x1,y1), (x2,y2), (x3,y3), (x4,y4), ...]
-ROI_POLYGON = [(165, 51), (301, 1), (758, 131), (1271, 635), (1110, 717), (134, 702), (162, 51)]
+ROI_POLYGON = [(375, 176), (229, 124), (185, 142), (279, 384), (492, 650), (940, 695), (1073, 462), (603, 75), (380, 34), (378, 177)]
 
 # ======================
 # LINE CROSSING
 # ======================
 # Line coordinates: (x1, y1) -> (x2, y2)
 # Chạy roi_selector.py để set
-LINE_START = (954, 327)
-LINE_END = (367, 697)
+LINE_START = (507, 596)
+LINE_END = (851, 323)
 
 # Direction: "horizontal" hoặc "vertical"
 # - "horizontal": Line nằm ngang (━━━), xe đi dọc (↑↓)
